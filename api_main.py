@@ -31,11 +31,70 @@ def novo_recurso():
         +str(my_params.get('Valor', type=int))})
     else:
         return 'bad request!', 400
-        
+
+
+@app.route('/criatabelas', methods=['GET']) 
+def criar_tabelas():
+    commands = (
+        """
+        CREATE TABLE clientes (
+            cliente_id SERIAL PRIMARY KEY,
+            cliente_name VARCHAR(255) NOT NULL
+        )
+        """,
+        """ CREATE TABLE produtos (
+                produto_id SERIAL PRIMARY KEY,
+                produto_nome VARCHAR(255) NOT NULL
+                )
+        """)
+
+    conn = psycopg2.connect(os.environ['DATABASE_URL'])
+    cur = conn.cursor()
+    # create table one by one
+    for command in commands:
+        cur.execute(command)
+    # close communication with the PostgreSQL database server
+    cur.close()
+    # commit the changes
+    conn.commit()
+    return 'Tabelas criadas!', 200
+
+@app.route('/cliente', methods=['POST','GET']) 
+def cliente_func():
+
+    conn = psycopg2.connect(os.environ['DATABASE_URL'])
+    cur = conn.cursor()
+
+    if(request.method == 'POST'):
+        my_params = request.form
+        cur.execute("INSERT INTO clientes (cliente_name) VALUES(%s) ",(my_params.get("nome"),))
+        cur.close()
+        conn.commit()
+        return 'Usuário inserido', 200
+    else: #get
+        my_params = request.args
+        cur.execute("SELECT * FROM clientes")
+        mobile_records = cur.fetchall()
+        for row in mobile_records:
+            print("Id = ", row[0], )
+            print("Nome = ", row[1], "\n")
+        cur.close()
+        return jsonify(mobile_records),200
 
 @app.route('/cliente/<id>')
 def get_cliente(id):
-    return "O cliente solicitado foi " + str(id)
+    conn = psycopg2.connect(os.environ['DATABASE_URL'])
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM clientes WHERE cliente_id=%s ",(id,))
+    mobile_records = cur.fetchall()
+    for row in mobile_records:
+        print("Id = ", row[0], )
+        print("Nome = ", row[1], "\n")
+    
+    cur.close()
+    # commit the changes
+    conn.commit()
+    return jsonify(mobile_records),200
 
 
 if __name__ == "__main__":
