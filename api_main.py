@@ -13,6 +13,10 @@ def minha_funcao():
         return ("Usuário sem permissão")
     return jsonify({"message": "Sorria você está sendo filmado!"})
 
+@app.route('/testingcicd', methods=['GET'])  # DEFAULT É SÓ GET
+def testingcicd_func():
+    return jsonify({"message": "CI/CD feito com sucesso"})
+
 @app.route('/novorecurso', methods=['GET', 'POST']) 
 def novo_recurso():
     print(request.args.get('Valor'))
